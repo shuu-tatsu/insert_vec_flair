@@ -99,8 +99,12 @@ class ModelTrainer:
         train_data = self.corpus.train
 
         # if training also uses dev data, include in training set
+        # TrainとDevを混ぜる場合。 defoは別々に処理する。
         if train_with_dev:
             train_data.extend(self.corpus.dev)
+        # fix start
+        dev_best = 0
+        # fix end
 
         dev_score_history = []
         dev_loss_history = []
@@ -109,6 +113,12 @@ class ModelTrainer:
         # At any point you can hit Ctrl + C to break out of training early.
         try:
             previous_learning_rate = learning_rate
+
+            # fix start
+            iter_size = int(len(train_data) / max_epochs)
+            begin_this_epoch = 0
+            end_this_epoch = begin_this_epoch + iter_size
+            # fix end
 
             for epoch in range(0 + self.epoch, max_epochs + self.epoch):
                 log_line(log)
@@ -135,10 +145,28 @@ class ModelTrainer:
                     log_line(log)
                     break
 
-                if not test_mode:
-                    random.shuffle(train_data)
+                #import pdb; pdb.set_trace()
 
+                if not test_mode:
+                    '''
+                    random.shuffle(train_data)
+                    '''
+                    # fix start
+                    random.shuffle(train_data[begin_this_epoch:end_this_epoch])
+                    # fix end
+
+                '''
                 batches = [train_data[x:x + mini_batch_size] for x in range(0, len(train_data), mini_batch_size)]
+                '''
+                # fix start
+                batches = [
+                           train_data[x : x + mini_batch_size]
+                           for x in range(begin_this_epoch, end_this_epoch, mini_batch_size)
+                ]
+
+                begin_this_epoch = end_this_epoch
+                end_this_epoch = begin_this_epoch + iter_size
+                # fix end
 
                 self.model.train()
 
@@ -164,8 +192,12 @@ class ModelTrainer:
                         iteration = epoch * len(batches) + batch_no
                         if not param_selection_mode:
                             weight_extractor.extract_weights(self.model.state_dict(), iteration)
-
+                '''
                 train_loss /= len(train_data)
+                '''
+                # fix start
+                train_loss /= iter_size
+                # fix end
 
                 self.model.eval()
 
@@ -229,8 +261,19 @@ class ModelTrainer:
                                                epoch + 1, train_loss)
 
                 # if we use dev data, remember best model based on dev evaluation score
+                '''
                 if not train_with_dev and not param_selection_mode and current_score == scheduler.best:
                     self.model.save(base_path / 'best-model.pt')
+                '''
+                # fix start
+                if (
+                    not train_with_dev
+                    and not param_selection_mode
+                    and dev_score > dev_best
+                ):
+                    dev_best = dev_score
+                    self.model.save(base_path / "best-model.pt")
+                # fix end
 
             # if we do not use dev data for model selection, save final model
             if save_final_model and not param_selection_mode :

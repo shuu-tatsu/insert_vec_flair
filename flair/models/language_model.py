@@ -92,11 +92,11 @@ class LanguageModel(nn.Module):
     # fix start
     def get_context_vec(self, is_forward_lm):
         import pickle
-        file_dir = '/cl/work/shusuke-t/ds_ner/dic_learning/non_context/toy_conllform/'
+        file_dir = '/cl/work/shusuke-t/ds_ner/dic_learning/context_vec/hxcx_vec/'
         if is_forward_lm:
-            f = open(file_dir + 'numpy_forward_hxcx_stacked_100.pkl', 'rb')
+            f = open(file_dir + 'numpy_forward_hxcx_stacked_400.pkl', 'rb')
         else:
-            f = open(file_dir + 'numpy_backward_hxcx_stacked_100.pkl', 'rb')
+            f = open(file_dir + 'numpy_backward_hxcx_stacked_400.pkl', 'rb')
 
         np_list = pickle.load(f)
         tensor_h0_list = []
