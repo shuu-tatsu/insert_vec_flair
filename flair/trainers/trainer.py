@@ -104,6 +104,7 @@ class ModelTrainer:
             train_data.extend(self.corpus.dev)
         # fix start
         dev_best = 0
+        is_train_slice = True
         # fix end
 
         dev_score_history = []
@@ -152,20 +153,26 @@ class ModelTrainer:
                     random.shuffle(train_data)
                     '''
                     # fix start
-                    random.shuffle(train_data[begin_this_epoch:end_this_epoch])
+                    if is_train_slice:
+                        random.shuffle(train_data[begin_this_epoch:end_this_epoch])
+                    else:
+                        random.shuffle(train_data)
                     # fix end
 
                 '''
                 batches = [train_data[x:x + mini_batch_size] for x in range(0, len(train_data), mini_batch_size)]
                 '''
                 # fix start
-                batches = [
-                           train_data[x : x + mini_batch_size]
-                           for x in range(begin_this_epoch, end_this_epoch, mini_batch_size)
-                ]
+                if is_train_slice:
+                    batches = [
+                               train_data[x : x + mini_batch_size]
+                               for x in range(begin_this_epoch, end_this_epoch, mini_batch_size)
+                    ]
 
-                begin_this_epoch = end_this_epoch
-                end_this_epoch = begin_this_epoch + iter_size
+                    begin_this_epoch = end_this_epoch
+                    end_this_epoch = begin_this_epoch + iter_size
+                else:
+                    batches = [train_data[x:x + mini_batch_size] for x in range(0, len(train_data), mini_batch_size)]
                 # fix end
 
                 self.model.train()
@@ -196,7 +203,10 @@ class ModelTrainer:
                 train_loss /= len(train_data)
                 '''
                 # fix start
-                train_loss /= iter_size
+                if is_train_slice:
+                    train_loss /= iter_size
+                else:
+                    train_loss /= len(train_data)
                 # fix end
 
                 self.model.eval()
