@@ -99,7 +99,7 @@ class ModelTrainer:
         train_data = self.corpus.train
 
         # if training also uses dev data, include in training set
-        # TrainとDevを混ぜる場合。 defoは別々に処理する。
+        # TrainとDevを混ぜる場合。 デフォルトは別々に処理。
         if train_with_dev:
             train_data.extend(self.corpus.dev)
         # fix start
